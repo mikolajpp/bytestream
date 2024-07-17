@@ -1,3 +1,7 @@
+::
+::  You can't NOT test!
+::    ~winter-paches
+::
 /+  *test
 /+  *bytestream
 |%
@@ -5,7 +9,7 @@
   ;:  weld
     ::
     %+  expect-eq
-    !>  [0 [4 0xcafe.babe]]
+    !>  [0 0 [4 0xcafe.babe]]
     !>  (from-octs [4 0xcafe.babe])
     ::
     %+  expect-eq
@@ -13,7 +17,7 @@
     !>  (to-octs (from-octs [4 0xcafe.babe]))
     ::
     %+  expect-eq
-    !>  [pos=2 [4 0xcafe.babe]]
+    !>  [pos=2 oft=0 [4 0xcafe.babe]]
     !>  (at-octs 2 [4 0xcafe.babe])
   ==
 ++  test-status
@@ -23,11 +27,11 @@
     ::
     %+  expect-eq
     !>  &
-    !>  (is-empty 2+[2 0xcafe])
+    !>  (is-empty (at-octs 2 [2 0xcafe]))
     ::
     %+  expect-eq
     !>  |
-    !>  (is-empty 0+[2 0xcafe])
+    !>  (is-empty (from-octs [2 0xcafe]))
     ::
     %+  expect-eq
     !>  4
@@ -48,6 +52,7 @@
 ++  test-read-byte
   =/  sea=bays
     (from-octs [3 0xca.babe])
+  ~&  sea
   =^  bar  sea  (read-byte-maybe sea)
   =^  bas  sea  (read-byte sea)
   =^  bat  sea  (read-byte sea)
@@ -533,5 +538,52 @@
             0
           3
     ==
+++  test-bitstream
+  =/  pea
+    (from-bays (from-octs [2 0b1101.0011.1101.1010]))
+  ;:  weld
+    ::  expect-gth, -lth, ...
+    ::
+    %+  expect-eq
+    !>  8
+    !>  num:(need-bits 8 pea)
+    ::
+    %+  expect-eq
+    !>  0b0
+    !>  (peek-bits 1 (need-bits 1 pea))
+    ::
+    %+  expect-eq
+    !>  0b10
+    !>  (peek-bits 2 (need-bits 2 pea))
+    ::
+    %+  expect-eq
+    !>  0b10
+    !>  (peek-bits 3 (need-bits 3 pea))
+    ::
+    %+  expect-eq
+    !>  0b1101.1010
+    !>  (peek-bits 8 (need-bits 8 pea))
+    ::
+    =.  pea  (need-bits 8 pea)
+    =.  pea  (drop-bits 3 pea)
+    %+  expect-eq
+    !>  0b1.1011
+    !>  (peek-bits 5 pea)
+    ::
+    =.  pea  (need-bits 8 pea)
+    =.  pea  (drop-bits 7 pea)
+    =.  pea  (need-bits 5 pea)
+    =^  bits-1  pea  (read-bits 3 pea)
+    =^  bits-2  pea  (read-bits 2 pea)
+    %+  expect-eq
+    !>  [0b111 0b0]
+    !>  [bits-1 bits-2]
+    ::
+    =.  pea  (need-bits 10 pea)
+    =.  pea  (byte-bits pea)
+    %+  expect-eq
+    !>  0b1101.1010
+    !>  (peek-bits 8 pea)
+  ==
 --
 

@@ -1,32 +1,33 @@
 /+  *test
 /+  *bytestream
-::  Example demonstrating the use of bytestream library to
-::  read the header of a png image.
+::    Example demonstrating the use of bytestream library to
+::    process PNG image.
 ::  
 |%
 ::  PNG specification
 ::
 ++  png-signature  ~[137 80 78 71 13 10 26 10]
+::  +test-read-png: read the header of a PNG file
 ::
 ++  test-read-png
   =/  data=octs
     %-  need
     (de:base64:mimes:html urbit-logo)
-  ::  Verify image size in bytes
+  ::  verify image size in bytes
   ::
   ?>  =(urbit-logo-bytes p.data)
   ::  Setup bytestream
   ::
   =/  sea  (from-octs data)
-  ::  Verify PNG signature: read first 8 bytes
+  ::  verify PNG signature: read first 8 bytes
   ::
   =^  sig  sea  (read-octs 8 sea)
   ?>  =(png-signature (rip-octs sig))
-  ::  Read IHDR chunk
+  ::  read IHDR chunk
   ::
   =^  =chunk-ihdr:png  sea  (read-chunk-ihdr:png sea)
   ~&  chunk-ihdr
-  %-  expect  !>(&)
+  (expect !>(&))
 ++  png
   |%
   +$  chunk  [length=@udF type=@tF data=octs]
@@ -59,6 +60,16 @@
     ::  XX implement bytestream views
     ::
     =/  red  (from-octs data.chunk)
+    ::  XX would monadic interface make this less verbose?
+    ::
+    :: =*  b  bind:red
+    :: ;<  width=@D  b  (read-msb 4)
+    :: ;<  height=@D  b  (read-msb 4)
+    :: ;<  depth=@D  b  read-byte
+    :: ;<  color=@D  b read-byte
+    :: ;<  compression=@D  b  read-byte
+    :: ;<  filter  b  read-byte
+    :: ;<  interlace  b  read-byte
     ::
     =^  width  red  (read-msb 4 red)
     =^  height  red  (read-msb 4 red)
@@ -79,6 +90,8 @@
     ==
   --
 ++  urbit-logo-bytes  4.813
+::  XX move to a png file on desk
+::
 ++  urbit-logo
     'iVBORw0KGgoAAAANSUhEUgAAAggAAAIICAYAAAAL/\
     /BZjAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0\
