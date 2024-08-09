@@ -5,11 +5,77 @@
 /+  *test
 /+  *bytestream
 |%
+++  test-rip-octs
+  ;:  weld
+    %+  expect-eq
+    !>  ~
+    !>  (rip-octs [0 0])
+    ::
+    %+  expect-eq
+    !>  ~
+    !>  (rip-octs [0 0xcafe])
+    ::
+    %+  expect-eq
+    !>  ~[0xbe 0xba 0xfe 0xca]
+    !>  (rip-octs [4 0xcafe.babe])
+    ::
+    %+  expect-eq
+    !>  ~[0xbe 0xba]
+    !>  (rip-octs [2 0xcafe.babe])
+    ::
+  ==
+++  test-cat-octs
+  ;:  weld
+    %+  expect-eq
+    !>  [8 0xfade.bade.cafe.babe]
+    !>  %+  cat-octs
+        [4 0xcafe.babe]
+        [4 0xfade.bade]
+    ::
+    %+  expect-eq
+    !>  [6 0xfade.bade.babe]
+    !>  %+  cat-octs
+        [2 0xcafe.babe]
+        [4 0xfade.bade]
+    ::
+    %+  expect-eq
+    !>  [6 0xbade.cafe.babe]
+    !>  %+  cat-octs
+        [4 0xcafe.babe]
+        [2 0xfade.bade]
+  ==
+++  test-can-octs
+  ;:  weld
+    %+  expect-eq
+    !>  [8 0xfade.bade.cafe.babe]
+    !>  %-  can-octs
+      :~  [2 0xbabe]
+          [1 0xfe]
+          [3 0xba.deca]
+          [2 0xfade]
+      ==
+    ::
+    %+  expect-eq
+    !>  [8 0xfade.bade.cafe.babe]
+    !>  %-  can-octs
+      :~  [1 0xbabe]
+          [2 0xfeba]
+          [2 0xba.deca]
+          [3 0xfa.deba]
+      ==
+    ::
+    %+  expect-eq
+    !>  [8 0x0]
+    !>  %-  can-octs
+      :~  [6 0x0]
+          [2 0x0]
+      ==
+  ==
 ++  test-convert
   ;:  weld
     ::
     %+  expect-eq
-    !>  [0 0 [4 0xcafe.babe]]
+    !>  [0 [4 0xcafe.babe]]
     !>  (from-octs [4 0xcafe.babe])
     ::
     %+  expect-eq
@@ -17,7 +83,7 @@
     !>  (to-octs (from-octs [4 0xcafe.babe]))
     ::
     %+  expect-eq
-    !>  [pos=2 oft=0 [4 0xcafe.babe]]
+    !>  [pos=2 [4 0xcafe.babe]]
     !>  (at-octs 2 [4 0xcafe.babe])
   ==
 ++  test-status
@@ -52,7 +118,6 @@
 ++  test-read-byte
   =/  sea=bays
     (from-octs [3 0xca.babe])
-  ~&  sea
   =^  bar  sea  (read-byte-maybe sea)
   =^  bas  sea  (read-byte sea)
   =^  bat  sea  (read-byte sea)
@@ -110,13 +175,13 @@
     !>  (peek-octs-until 3 sea)
     ::
     %+  expect-eq
-    !>  :_  sea(pos 4)
-        [2 0xcafe]
-    !>  (read-octs-until 4 (skip-by 2 sea))
+    !>  :_  sea(pos 3)
+        [1 0xfe]
+    !>  (read-octs-until 3 (skip-by 2 sea))
     ::
     %+  expect-eq
-    !>  [2 0xcafe]
-    !>  (peek-octs-until 4 (skip-by 2 sea))
+    !>  [1 0xfe]
+    !>  (peek-octs-until 3 (skip-by 2 sea))
     ::
     %+  expect-eq
     !>  :_  sea(pos 4)
@@ -151,6 +216,27 @@
     %+  expect-eq
     !>  11
     !>  pos.sea
+  ==
+++  test-find-byte
+  =/  sea=bays
+    %-  skip-byte
+    (from-octs [4 0xcafe.babe])
+  ;:  weld
+    %+  expect-eq
+    !>  ~
+    !>  (find-byte 0xbe sea)
+    ::
+    %+  expect-eq
+    !>  `1
+    !>  (find-byte 0xba sea)
+    ::
+    %+  expect-eq
+    !>  `2
+    !>  (find-byte 0xfe sea)
+    ::
+    %+  expect-eq
+    !>  ~
+    !>  (find-byte 0xff sea)
   ==
 ++  test-write-txt
   =/  sea=bays
@@ -397,7 +483,7 @@
   ::
   ;:  weld
     %+  expect-eq
-    !>  0 
+    !>  0
     !>  pos.sea
     ::
     %+  expect-eq
@@ -463,6 +549,22 @@
     !>  1
     !>  pos.sea
   ==
+  ++  test-chunk
+    =/  sea=bays
+      (from-octs [5 0xfade.bade.cafe.babe])
+    ;:  weld
+      %+  expect-eq
+      !>  ~[[2 0xbabe] [2 0xcafe] [1 0xde]]
+      !>  (chunk 2 sea)
+      ::
+      %+  expect-eq
+      !>  ~[[3 0xfe.babe] [2 0xdeca]]
+      !>  (chunk 3 sea)
+      ::
+      %+  expect-eq
+      !>  ~
+      !>  (chunk 0 sea)
+    ==
   ++  test-extract
     =/  sea=bays
       (from-octs [4 0xcafe.babe])
@@ -540,7 +642,7 @@
     ==
 ++  test-bitstream
   =/  pea
-    (from-bays (from-octs [2 0b1101.0011.1101.1010]))
+    (bits-from-bays (from-octs [2 0b1101.0011.1101.1010]))
   ;:  weld
     ::  expect-gth, -lth, ...
     ::

@@ -83,6 +83,7 @@
   |=  [=octs size=@ud]
   (add size p.octs)
 ++  as-octs  as-octs:mimes:html
+++  as-octt  as-octt:mimes:html
 ++  as-byts
   |=  =octs
   ^-  byts
@@ -250,9 +251,11 @@
 ::    Read byte
 ::
 +|  %read-byte
+::
 ::  +read-byte: read a byte and advance the stream
 ::
 ++  read-byte
+  ~/  %read-byte
   |=  sea=bays
   ^-  [@D bays]
   ?>  (still-byte sea)
@@ -291,6 +294,7 @@
 ::  +read-octs: read .n octs
 ::
 ++  read-octs
+  ~/  %read-octs
   |=  [n=@ud sea=bays]
   ^-  [octs bays]
   ?>  (still-by n sea)
@@ -696,6 +700,7 @@
 ::  +need-bits: require .n bits to be available
 ::
 ++  need-bits
+  ~/  %need-bits
   |=  [n=@ud pea=bits]
   ^-  bits
   |-
@@ -710,6 +715,7 @@
 ::  +drop-bits: drop low .n bits
 ::
 ++  drop-bits
+  ~/  %drop-bits
   |=  [n=@ud pea=bits]
   ^-  bits
   %=  pea
@@ -727,6 +733,7 @@
 ::  +peek-bits: peek low .n bits
 ::
 ++  peek-bits
+  ~/  %peek-bits
   |=  [n=@ud pea=bits]
   ^-  @
   ?>  (gte num.pea n)
@@ -735,6 +742,7 @@
 ::  +read-bits: read low .n bits, then drop
 ::
 ++  read-bits
+  ~/  %read-bits
   |=  [n=@ud pea=bits]
   ^-  [@ bits]
   ?>  (gte num.pea n)
@@ -754,14 +762,12 @@
 ::  +byte-bits: remove 0 to 7 bits to reach byte boundary
 ::
 ++  byte-bits
+  ~/  %byte-bits
   |=  pea=bits
   ^-  bits
   =+  rem=(dis num.pea 0x7)
   %=  pea
-    num
-      ?:  (lth num.pea rem)
-        0
-      (sub num.pea rem)
+    num  (sub num.pea rem)
     bit  (rsh [0 rem] bit.pea)
   ==
 --
